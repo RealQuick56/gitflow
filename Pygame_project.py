@@ -8,16 +8,17 @@ Cell_size = 60
 pygame.display.set_caption('Pygame_project')
 size = width, height = round(len(Level_map) * Cell_size * 1.5), round(len(Level_map[0]) * Cell_size * 1.5)
 screen = pygame.display.set_mode(size)
-pygame.mixer.music.load('Neizvestno_-_Pikselnaya_muzyka_iPleer.com_1.mp3')
+pygame.mixer.music.load('Neizvestno_-_Pikselnaya_muzyka_(iPleer.com) (1).mp3')
 pygame.mixer.music.set_volume(0)
 pygame.mixer.music.play(-1)
 sound_step = pygame.mixer.Sound('Sound_17237.wav')
-background = pygame.image.load('BingWallpaper_2.jpg')
-menu_background = pygame.image.load('BingWallpaper_5.jpg')
+background = pygame.image.load('BingWallpaper (2).jpg')
+menu_background = pygame.image.load('BingWallpaper (5).jpg')
 LEFT = width // 8
 TOP = height // 8
 Coords_for_players = []
 Walls_tile = []
+end_game = 0
 
 for x in range(len(Level_map)):
     for y in range(len(Level_map[x])):
@@ -125,6 +126,7 @@ class Player(pygame.sprite.Sprite):
             y = (self.rect.top - board.top) // Cell_size
             if self.rect.top == (len(Level_map[x]) - 1) * Cell_size + TOP and Level_map[x][0] != '#':
                 self.rect[1] = TOP
+                self.moves -= 1
 
             elif self.rect.top == (len(Level_map[x]) - 1) * Cell_size + TOP and Level_map[x][0] == '#':
                 pass
@@ -133,6 +135,7 @@ class Player(pygame.sprite.Sprite):
                     pass
                 else:
                     self.rect[1] += 60
+                    self.moves -= 1
 
 
     def move_up(self):
@@ -141,6 +144,7 @@ class Player(pygame.sprite.Sprite):
             y = (self.rect.top - board.top) // Cell_size
             if self.rect.top == TOP and Level_map[x][len(Level_map[x]) - 1] != '#':
                 self.rect[1] = (len(Level_map[x]) - 1) * Cell_size + TOP
+                self.moves -= 1
 
             elif self.rect.top == TOP and Level_map[x][len(Level_map[x]) - 1] == '#':
                 pass
@@ -149,6 +153,7 @@ class Player(pygame.sprite.Sprite):
                     pass
                 else:
                     self.rect[1] -= 60
+                    self.moves -= 1
 
 
     def move_right(self):
@@ -157,6 +162,7 @@ class Player(pygame.sprite.Sprite):
             y = (self.rect.top - board.top) // Cell_size
             if self.rect.left == (len(Level_map) - 1) * Cell_size + LEFT and Level_map[0][y] != '#':
                 self.rect[0] = LEFT
+                self.moves -= 1
 
             elif self.rect.left == (len(Level_map) - 1) * Cell_size + LEFT and Level_map[0][y] == '#':
                 pass
@@ -165,6 +171,7 @@ class Player(pygame.sprite.Sprite):
                     pass
                 else:
                     self.rect[0] += 60
+                    self.moves -= 1
 
 
     def move_left(self):
@@ -173,7 +180,7 @@ class Player(pygame.sprite.Sprite):
             y = (self.rect.top - board.top) // Cell_size
             if self.rect.left == LEFT and Level_map[len(Level_map) - 1][y] != '#':
                 self.rect[0] = (len(Level_map) - 1) * Cell_size + LEFT
-
+                self.moves -= 1
             elif self.rect.left == LEFT and Level_map[len(Level_map) - 1][y] == '#':
                 pass
             else:
@@ -181,6 +188,7 @@ class Player(pygame.sprite.Sprite):
                     pass
                 else:
                     self.rect[0] -= 60
+                    self.moves -= 1
 
 
     def check(self, mouse):
@@ -201,15 +209,19 @@ class Player(pygame.sprite.Sprite):
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top + 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command != self.command:
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top + 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command == self.command:
                         return True
@@ -218,15 +230,19 @@ class Player(pygame.sprite.Sprite):
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top - 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command != self.command:
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top - 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command == self.command:
                         return True
@@ -235,15 +251,19 @@ class Player(pygame.sprite.Sprite):
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top == sprt.rect.top and self.rect.left + 60 == sprt.rect.left and sprt.command != self.command:
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top == sprt.rect.top and self.rect.left + 60 == sprt.rect.left and sprt.command == self.command:
                         return True
@@ -252,16 +272,20 @@ class Player(pygame.sprite.Sprite):
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
 
                         return True
                     elif self.rect.top == sprt.rect.top and self.rect.left - 60 == sprt.rect.left and sprt.command != self.command:
                         if sprt.current_health - 5 <= 0:
                             sprt.current_health -= 5
                             sprt.kill()
+                            self.moves -= 1
                         else:
                             sprt.current_health -= 5
+                            self.moves -= 1
                         return True
                     elif self.rect.top == sprt.rect.top and self.rect.left - 60 == sprt.rect.left and sprt.command == self.command:
                         return True
@@ -300,8 +324,8 @@ def randomiser():
         return (int(x), int(y))
 
 
-player_1 = Player('man.png', 1, 100)
-player_2 = Player('man.png', 1, 100)
+player_1 = Player('kontsepty4.png', 1, 100)
+player_2 = Player('kontsepty4.png', 1, 100)
 player_3 = Player('man-2.png', 2, 200)
 player_4 = Player('man-2.png', 2, 200)
 
@@ -352,6 +376,11 @@ while start_run:
     label.render()
 while running:
     clock.tick(fps)
+    end_game += 1
+    print(end_game)
+    if end_game / 30 == 300:
+        running = False
+        print(end_game)
     time_delta = clock.tick(fps) / 1000.0
     for event in pygame.event.get():
         if event.type == pygame.USEREVENT:
@@ -369,25 +398,22 @@ while running:
                             sound_step.play()
                             sprt.move_down()
                             healthbar.set_sprite_to_monitor(sprite_to_monitor=sprt)
-                            sprt.moves -= 1
                     if event.key == pygame.K_w:
                         if not sprt.attack(all_sprites, 'up'):
                             sound_step.play()
                             sprt.move_up()
                             healthbar.set_sprite_to_monitor(sprite_to_monitor=sprt)
-                            sprt.moves -= 1
                     if event.key == pygame.K_d:
                         if not sprt.attack(all_sprites, 'right'):
                             sound_step.play()
                             sprt.move_right()
                             healthbar.set_sprite_to_monitor(sprite_to_monitor=sprt)
-                            sprt.moves -= 1
                     if event.key == pygame.K_a:
                         if not sprt.attack(all_sprites, 'left'):
                             sound_step.play()
                             sprt.move_left()
                             healthbar.set_sprite_to_monitor(sprite_to_monitor=sprt)
-                            sprt.moves -= 1
+
         manager.draw_ui(screen)
         for player in all_sprites:
             if point.update(player):
