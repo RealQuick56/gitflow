@@ -1,21 +1,28 @@
 import pygame
 import pygame_gui
-import threading
 import random
+from moviepy.editor import *
 import sys
 import os
 
-
+clip = VideoFileClip('images/present.mp4')
+clip.preview()
+os.chdir('maps')
+map = random.choice(os.listdir())
+os.chdir('..')
 pygame.init()
-with open('Map_Pygame.txt', 'r') as mapFile:
+with open(f'maps/{map}', 'r') as mapFile:
     Level_map = [list(line.strip()) for line in mapFile]
+with open('info.txt', 'r') as infofile:
+    data = infofile.read()
 Cell_size = 60
 pygame.display.set_caption('Pygame_project')
 size = width, height = round(len(Level_map) * Cell_size * 1.5), round(len(Level_map[0]) * Cell_size * 1.5)
 screen = pygame.display.set_mode(size)
-pygame.mixer.music.load('background_music_menu.mp3')
+pygame.display.toggle_fullscreen()
+pygame.mixer.music.load('music/background_music_menu.mp3')
+sound_step = pygame.mixer.Sound('music/Foot.wav')
 
-sound_step = pygame.mixer.Sound('Foot.wav')
 background = pygame.image.load('images/BingWallpaper_2.jpg')
 menu_background = pygame.image.load('images/BingWallpaper_5.jpg')
 LEFT = width // 8
@@ -60,7 +67,6 @@ btn = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((LEFT, (Cell_size *
 healthbar = pygame_gui.elements.UIScreenSpaceHealthBar(relative_rect=pygame.Rect((len(Level_map)
                                                        * 60 + 60, (Cell_size * len(Level_map[0]) + 120)), (120, 30)),
                                                        manager=manager)
-
 label_goals = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((len(Level_map)
                                                        * 60 + 60, (Cell_size * len(Level_map[0]) + 180)), (120, 30)),
                                                        manager=manager, text='')
@@ -75,7 +81,7 @@ exit_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((width // 2
                                              text='Выход',
                                              manager=manager_2)
 info_button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((width // 2 - 100, 400), (220, 50)),
-                                             text='Инфо',
+                                             text='Как играть?',
                                              manager=manager_2)
 
 manager_3 = pygame_gui.UIManager((width, height))
@@ -100,8 +106,8 @@ class Label:
     def render(self):
         pygame.draw.rect(screen, pygame.Color('blue'), (width // 2 - 260, 150, 520, 80), 10)
         font = pygame.font.Font(None, 58)
-        text = font.render('Man\'s play', True, pygame.Color('white'))
-        screen.blit(text, (width // 2 - 100, 170))
+        text = font.render('Cosmos battle', True, pygame.Color('white'))
+        screen.blit(text, (width // 2 - 130, 170))
 
 
 class Tile(pygame.sprite.Sprite):
@@ -127,8 +133,8 @@ class Player(pygame.sprite.Sprite):
         self.health_capacity = health_capacity
         self.current_health = current_health
         self.command = command
-        self.moves = moves
         self.save_moves = moves
+        self.moves = moves
         self.damage = damage
         self.name = name
         for coords in Coords_for_players:
@@ -246,118 +252,125 @@ class Player(pygame.sprite.Sprite):
             self.count = False
 
     def attack(self, sprites, go):
-        if self.moves > 0:
-            for sprt in sprites:
-                if go == 'down':
-                    if self.rect.top == (len(Level_map[x]) - 1) * Cell_size + TOP and self.rect.left ==\
-                            sprt.rect.left and sprt.command != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top + 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command\
-                            != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top + 60 == sprt.rect.top and self.rect.left == sprt.rect.left and\
-                            sprt.command == self.command:
-                        return True
-                elif go == 'up':
-                    if self.rect.top == TOP and self.rect.left == sprt.rect.left and sprt.command != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top - 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command\
-                            != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top - 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command\
-                            == self.command:
-                        return True
-                elif go == 'right':
-                    if self.rect.left == (len(Level_map) - 1) * Cell_size + LEFT and self.rect.top == sprt.rect.top\
-                            and sprt.command != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top == sprt.rect.top and self.rect.left + 60 == sprt.rect.left and\
-                            sprt.command != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top == sprt.rect.top and self.rect.left + 60 == sprt.rect.left and sprt.command\
-                            == self.command:
-                        return True
-                elif go == 'left':
-                    if self.rect.left == LEFT and self.rect.top == sprt.rect.top and sprt.command != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
+        if self.check_for_chess_move != 1:
+            if self.moves > 0:
+                for sprt in sprites:
+                    if go == 'down':
+                        if self.rect.top == (len(Level_map[x]) - 1) * Cell_size + TOP and self.rect.left ==\
+                                sprt.rect.left and sprt.command != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top + 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command\
+                                != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top + 60 == sprt.rect.top and self.rect.left == sprt.rect.left and\
+                                sprt.command == self.command:
+                            return True
+                    elif go == 'up':
+                        if self.rect.top == TOP and self.rect.left == sprt.rect.left and sprt.command != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top - 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command\
+                                != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top - 60 == sprt.rect.top and self.rect.left == sprt.rect.left and sprt.command\
+                                == self.command:
+                            return True
+                    elif go == 'right':
+                        if self.rect.left == (len(Level_map) - 1) * Cell_size + LEFT and self.rect.top == sprt.rect.top\
+                                and sprt.command != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top == sprt.rect.top and self.rect.left + 60 == sprt.rect.left and\
+                                sprt.command != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top == sprt.rect.top and self.rect.left + 60 == sprt.rect.left and sprt.command\
+                                == self.command:
+                            return True
+                    elif go == 'left':
+                        if self.rect.left == LEFT and self.rect.top == sprt.rect.top and sprt.command != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
 
-                        return True
-                    elif self.rect.top == sprt.rect.top and self.rect.left - 60 == sprt.rect.left and sprt.command\
-                            != self.command:
-                        if sprt.current_health - 5 <= 0:
-                            sprt.current_health -= self.damage
-                            sprt.kill()
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        else:
-                            sprt.current_health -= self.damage
-                            self.moves -= 1
-                            label_goals.set_text(f'Шагов: {self.moves}')
-                        return True
-                    elif self.rect.top == sprt.rect.top and self.rect.left - 60 == sprt.rect.left and\
-                            sprt.command == self.command:
-                        return True
+                            return True
+                        elif self.rect.top == sprt.rect.top and self.rect.left - 60 == sprt.rect.left and sprt.command\
+                                != self.command:
+                            if sprt.current_health - self.damage <= 0:
+                                sprt.current_health -= self.damage
+                                sprt.kill()
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            else:
+                                sprt.current_health -= self.damage
+                                self.moves -= 1
+                                label_goals.set_text(f'Шагов: {self.moves}')
+                            return True
+                        elif self.rect.top == sprt.rect.top and self.rect.left - 60 == sprt.rect.left and \
+                                sprt.command == self.command:
+                            return True
+            else:
+                for sprt in all_sprites.sprites():
+                    if sprt.command == self.command:
+                        sprt.check_for_chess_move = 1
+                    else:
+                        sprt.check_for_chess_move = 0
 
 
 class Point(pygame.sprite.Sprite):
@@ -393,11 +406,6 @@ def randomiser():
 
 first_command = pygame.sprite.Group()
 second_command = pygame.sprite.Group()
-
-
-
-first_command = pygame.sprite.Group()
-second_command = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 cords1 = Coords_for_players.copy()
 for i in cords1:                                                           #@, $, & - 1 команда ! % ? - 2 команда
@@ -410,19 +418,19 @@ for i in cords1:                                                           #@, $
         second_command.add(k)
         all_sprites.add(k)
     elif Level_map[i[0]][i[1]] == '&':
-        k = Player('images/m_kontsepty6.png', 1, 200, 1, 40, 200, 3, 'hard')
+        k = Player('images/m_kontsepty3.png', 1, 200, 1, 40, 200, 3, 'hard')
         first_command.add(k)
         all_sprites.add(k)
     elif Level_map[i[0]][i[1]] == '?':
-        k = Player('images/m_kontsepty3.png', 2, 200, 0, 40, 200, 3, 'hard')
+        k = Player('images/m_kontsepty6.png', 2, 200, 0, 40, 200, 3, 'hard')
         second_command.add(k)
         all_sprites.add(k)
     elif Level_map[i[0]][i[1]] == '%':
-        k = Player('images/m_kontsepty2.png', 2, 100, 0, 25, 100, 5, 'medium')
+        k = Player('images/m_kontsepty5.png', 2, 100, 0, 25, 100, 5, 'medium')
         second_command.add(k)
         all_sprites.add(k)
     elif Level_map[i[0]][i[1]] == '$':
-        k = Player('images/m_kontsepty5.png', 1, 100, 1, 25, 100, 5, 'medium')
+        k = Player('images/m_kontsepty2.png', 1, 100, 1, 25, 100, 5, 'medium')
         first_command.add(k)
         all_sprites.add(k)
 
@@ -439,10 +447,12 @@ label = Label()
 running = False
 start_run = True
 end_running = True
+present = True
 clock = pygame.time.Clock()
 fps = 30
 apple = True
 pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0)
 while start_run:
     clock.tick(fps)
     time_delta = clock.tick(fps) / 1000.0
@@ -455,11 +465,12 @@ while start_run:
                 if event.ui_element == info_button:
                     window = pygame_gui.windows.UIMessageWindow(rect=pygame.Rect((width // 2 - 260, 240), (520, 520)),
                                                                      manager=manager_2,
-                                                                     html_message='Информация об игре')
+                                                                     html_message=f'{data}')
                 if event.ui_element == exit_button:
                     running = False
                     start_run = False
                     end_running = False
+                    sys.exit()
         manager_2.process_events(event)
     pygame.display.flip()
     screen.blit(menu_background, (0, 0))
@@ -467,7 +478,7 @@ while start_run:
     manager_2.update(time_delta)
     label.render()
 pygame.mixer.music.stop()
-pygame.mixer.music.load('background_music_game.mp3')
+pygame.mixer.music.load('music/background_music_game.mp3')
 pygame.mixer.music.play(-1)
 while running:
     clock.tick(fps)
@@ -508,34 +519,33 @@ while running:
                             sprt.move_left()
                             healthbar.set_sprite_to_monitor(sprite_to_monitor=sprt)
                             label_goals.set_text(f'Шагов: {sprt.moves}')
-        manager.draw_ui(screen)
-        for player in all_sprites:
-            print(player.name, player.command, player.check_for_chess_move)
-            if point.update(player):
-                screen.blit(point.image, point.rect)
-            else:
-                x, y = randomiser()
-                point = Point('images/red-apple.png', x, y)
-        pygame.display.flip()
-        manager.process_events(event)
-        screen.blit(background, (0, 0))
-        for sprt in all_sprites:
-            screen.blit(sprt.image, sprt.rect)
-            if len(all_sprites.sprites()) == 2:
-                if all_sprites.sprites()[0].command == all_sprites.sprites()[1].command:
-                    win_command = f'Выйграла команда {all_sprites.sprites()[0].command}'
-                    running = False
-                    end_running = True
-            elif len(all_sprites.sprites()) == 1:
+    manager.draw_ui(screen)
+    for player in all_sprites:
+        if point.update(player):
+            screen.blit(point.image, point.rect)
+        else:
+            x, y = randomiser()
+            point = Point('images/red-apple.png', x, y)
+    pygame.display.flip()
+    manager.process_events(event)
+    screen.blit(background, (0, 0))
+    for sprt in all_sprites:
+        screen.blit(sprt.image, sprt.rect)
+        if len(all_sprites.sprites()) == 2:
+            if all_sprites.sprites()[0].command == all_sprites.sprites()[1].command:
                 win_command = f'Выйграла команда {all_sprites.sprites()[0].command}'
                 running = False
                 end_running = True
-        for sprite in tiles:
-            screen.blit(sprite.image, sprite.rect)
-        board.render()
-        manager.update(time_delta)
+        elif len(all_sprites.sprites()) == 1:
+            win_command = f'Выйграла команда {all_sprites.sprites()[0].command}'
+            running = False
+            end_running = True
+    for sprite in tiles:
+        screen.blit(sprite.image, sprite.rect)
+    board.render()
+    manager.update(time_delta)
 pygame.mixer.music.stop()
-pygame.mixer.music.load('background_music_menu.mp3')
+pygame.mixer.music.load('music/background_music_menu.mp3')
 pygame.mixer.music.play(-1)
 while end_running:
     clock.tick(fps)
@@ -549,7 +559,7 @@ while end_running:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if event.ui_element == end_exit_button:
                     end_running = False
-        manager_3.process_events(event)
+    manager_3.process_events(event)
     pygame.display.flip()
     screen.blit(menu_background, (0, 0))
     manager_3.draw_ui(screen)
